@@ -95,6 +95,27 @@ function showWarningToast(message) {
 }
 
 /**
+ * Показує повідомлення про кінець колекції через iziToast
+ */
+function showEndOfResultsToast() {
+  iziToast.info({
+    title: '🏁 Кінець результатів',
+    message: "We're sorry, but you've reached the end of search results.",
+    position: 'topRight',
+    timeout: 5000,
+    progressBar: true,
+    close: true,
+    animateInside: true,
+    transitionIn: 'fadeInDown',
+    transitionOut: 'fadeOutUp',
+    backgroundColor: '#4a6fa5',
+    titleColor: '#ffffff',
+    messageColor: '#ffffff',
+    icon: 'fa-solid fa-flag-checkered',
+  });
+}
+
+/**
  * Плавна прокрутка сторінки до нових зображень
  */
 function smoothScrollToNewImages() {
@@ -117,10 +138,13 @@ function checkIfMoreImagesAvailable() {
   const totalPages = Math.ceil(totalHits / PER_PAGE);
 
   if (currentPage >= totalPages || totalHits === 0) {
+    // Дійшли до кінця колекції
     hideLoadMoreBtn();
     showEndMessage();
+    showEndOfResultsToast(); // Показуємо сповіщення через iziToast
     return false;
   } else {
+    // Є ще зображення для завантаження
     showLoadMoreBtn();
     hideEndMessage();
     return true;
@@ -159,6 +183,7 @@ async function searchImages(query, page = 1, append = false) {
         // Кінець колекції
         hideLoadMoreBtn();
         showEndMessage();
+        showEndOfResultsToast(); // Показуємо сповіщення через iziToast
         return;
       }
     }
@@ -179,6 +204,7 @@ async function searchImages(query, page = 1, append = false) {
     if (page === 1 && data.hits.length < PER_PAGE) {
       hideLoadMoreBtn();
       showEndMessage();
+      showEndOfResultsToast(); // Показуємо сповіщення через iziToast
     }
 
     // Показуємо інформацію про кількість знайдених зображень (тільки для першої сторінки)
@@ -249,6 +275,7 @@ loadMoreBtn.addEventListener('click', async () => {
   if (currentPage >= totalPages) {
     hideLoadMoreBtn();
     showEndMessage();
+    showEndOfResultsToast(); // Показуємо сповіщення через iziToast
     return;
   }
 

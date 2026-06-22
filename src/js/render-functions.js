@@ -11,7 +11,9 @@ function initLightbox() {
     lightbox.destroy();
   }
 
-  lightbox = new SimpleLightbox('.gallery a', {
+  // Використовуємо селектор, який відповідає структурі галереї
+  // Додаємо клас gallery до контейнера для коректної роботи SimpleLightbox
+  lightbox = new SimpleLightbox('#gallery a', {
     captions: true,
     captionsData: 'alt',
     captionDelay: 250,
@@ -29,6 +31,11 @@ export async function createGallery(images, append = false) {
 
     if (!Array.isArray(images) || images.length === 0) {
       throw new Error('No images to display');
+    }
+
+    // Додаємо клас gallery до контейнера, якщо його немає
+    if (!galleryContainer.classList.contains('gallery')) {
+      galleryContainer.classList.add('gallery');
     }
 
     const galleryMarkup = images
@@ -96,6 +103,8 @@ export async function clearGallery() {
   try {
     if (galleryContainer) {
       galleryContainer.innerHTML = '';
+      // Видаляємо клас gallery при очищенні
+      galleryContainer.classList.remove('gallery');
     }
   } catch (error) {
     console.error('Помилка при очищенні галереї:', error);
