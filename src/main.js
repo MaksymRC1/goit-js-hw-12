@@ -7,8 +7,8 @@ import {
   hideLoader,
   showEndMessage,
   hideEndMessage,
-} from './render-functions.js';
-import { getImagesByQueryAsync } from './pixabay-api.js';
+} from './js/render-functions.js';
+import { getImagesByQueryAsync } from './js/pixabay-api.js';
 
 const searchForm = document.querySelector('#search-form');
 const searchInput = document.querySelector('#search-input');
@@ -90,7 +90,7 @@ async function searchImages(query, page = 1, append = false) {
     await createGallery(data.hits, append);
 
     // Перевіряємо чи є ще зображення для завантаження
-    const hasMoreImages = checkIfMoreImagesAvailable();
+    checkIfMoreImagesAvailable();
 
     // Плавна прокрутка при додаванні нових зображень
     if (append && page > 1) {
