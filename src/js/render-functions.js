@@ -1,5 +1,7 @@
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.css';
+import iziToast from 'izitoast';
+import 'izitoast/dist/css/iziToast.min.css';
 
 const galleryContainer = document.querySelector('#gallery');
 const loadMoreBtn = document.querySelector('#load-more-btn');
@@ -162,10 +164,6 @@ export function hideEndMessage() {
   }
 }
 
-export function getGalleryItems() {
-  return document.querySelectorAll('.gallery-item');
-}
-
 export default {
   createGallery,
   clearGallery,
@@ -175,5 +173,4 @@ export default {
   hideLoader,
   showEndMessage,
   hideEndMessage,
-  getGalleryItems,
 };

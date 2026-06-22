@@ -1,3 +1,6 @@
+import iziToast from 'izitoast';
+import 'izitoast/dist/css/iziToast.min.css';
+
 import {
   createGallery,
   clearGallery,
@@ -21,17 +24,75 @@ let totalHits = 0;
 const PER_PAGE = 15;
 
 /**
+ * Показує повідомлення про помилку через iziToast
+ */
+function showErrorToast(message) {
+  iziToast.error({
+    title: '❌ Помилка',
+    message: message,
+    position: 'topRight',
+    timeout: 5000,
+    progressBar: true,
+    close: true,
+    animateInside: true,
+  });
+}
+
+/**
+ * Показує інформаційне повідомлення через iziToast
+ */
+function showInfoToast(message) {
+  iziToast.info({
+    title: 'ℹ️ Інформація',
+    message: message,
+    position: 'topRight',
+    timeout: 3000,
+    progressBar: true,
+    close: true,
+    animateInside: true,
+  });
+}
+
+/**
+ * Показує повідомлення про успіх через iziToast
+ */
+function showSuccessToast(message) {
+  iziToast.success({
+    title: '✅ Успіх',
+    message: message,
+    position: 'topRight',
+    timeout: 3000,
+    progressBar: true,
+    close: true,
+    animateInside: true,
+  });
+}
+
+/**
+ * Показує попередження через iziToast
+ */
+function showWarningToast(message) {
+  iziToast.warning({
+    title: '⚠️ Попередження',
+    message: message,
+    position: 'topRight',
+    timeout: 4000,
+    progressBar: true,
+    close: true,
+    animateInside: true,
+  });
+}
+
+/**
  * Плавна прокрутка сторінки до нових зображень
  */
 function smoothScrollToNewImages() {
   const galleryItems = document.querySelectorAll('.gallery-item');
   if (galleryItems.length === 0) return;
 
-  // Отримуємо висоту однієї карточки галереї
   const firstItem = galleryItems[0];
   const cardHeight = firstItem.getBoundingClientRect().height;
 
-  // Прокручуємо на дві висоти карточки
   window.scrollBy({
     top: cardHeight * 2,
     behavior: 'smooth',
@@ -45,12 +106,10 @@ function checkIfMoreImagesAvailable() {
   const totalPages = Math.ceil(totalHits / PER_PAGE);
 
   if (currentPage >= totalPages || totalHits === 0) {
-    // Дійшли до кінця колекції
     hideLoadMoreBtn();
     showEndMessage();
     return false;
   } else {
-    // Є ще зображення для завантаження
     showLoadMoreBtn();
     hideEndMessage();
     return true;
@@ -62,65 +121,59 @@ function checkIfMoreImagesAvailable() {
  */
 async function searchImages(query, page = 1, append = false) {
   try {
-    // Ховаємо кнопку та повідомлення під час завантаження
     hideLoadMoreBtn();
     hideEndMessage();
-
-    // Показуємо індикатор завантаження
     await showLoader();
 
     const data = await getImagesByQueryAsync(query, page, PER_PAGE);
-
-    // Зберігаємо загальну кількість знайдених зображень
     totalHits = data.totalHits;
 
-    // Перевіряємо чи є результати
     if (data.hits.length === 0) {
       if (page === 1) {
-        throw new Error('No images found for your search query');
+        showWarningToast(
+          'За вашим запитом нічого не знайдено. Спробуйте інші ключові слова.'
+        );
+        await clearGallery();
+        hideLoadMoreBtn();
+        hideEndMessage();
+        return;
       } else {
-        // Якщо на наступних сторінках немає результатів
         hideLoadMoreBtn();
         showEndMessage();
         return;
       }
     }
 
-    // Створюємо галерею (додаємо або перезаписуємо)
     await createGallery(data.hits, append);
-
-    // Перевіряємо чи є ще зображення для завантаження
     checkIfMoreImagesAvailable();
 
-    // Плавна прокрутка при додаванні нових зображень
     if (append && page > 1) {
       smoothScrollToNewImages();
+      showSuccessToast(`Завантажено ще ${data.hits.length} зображень`);
     }
 
-    // Якщо це перша сторінка і зображень менше ніж PER_PAGE
     if (page === 1 && data.hits.length < PER_PAGE) {
       hideLoadMoreBtn();
       showEndMessage();
+    }
+
+    if (page === 1) {
+      showInfoToast(`Знайдено ${totalHits} зображень за запитом "${query}"`);
     }
   } catch (error) {
     console.error('Помилка пошуку:', error);
 
     if (page === 1) {
-      // Перша сторінка - очищаємо галерею та показуємо помилку
       await clearGallery();
       hideLoadMoreBtn();
       hideEndMessage();
-      alert(`Помилка: ${error.message}`);
+      showErrorToast(`Помилка: ${error.message}`);
     } else {
-      // Помилка при завантаженні додаткових зображень
-      alert(`Помилка завантаження: ${error.message}`);
-      // Повертаємо сторінку назад
+      showErrorToast(`Помилка завантаження: ${error.message}`);
       currentPage = page - 1;
-      // Показуємо кнопку знову якщо є ще зображення
       checkIfMoreImagesAvailable();
     }
   } finally {
-    // Ховаємо індикатор завантаження
     await hideLoader();
   }
 }
@@ -134,20 +187,17 @@ searchForm.addEventListener('submit', async event => {
   const query = searchInput.value.trim();
 
   if (!query) {
-    alert('Будь ласка, введіть пошуковий запит');
+    showWarningToast('Будь ласка, введіть пошуковий запит');
     return;
   }
 
-  // Зберігаємо пошуковий запит у глобальну змінну
   currentQuery = query;
   currentPage = 1;
 
-  // Очищаємо попередні результати
   await clearGallery();
   hideLoadMoreBtn();
   hideEndMessage();
 
-  // Виконуємо пошук
   await searchImages(currentQuery, currentPage, false);
 });
 
@@ -159,7 +209,6 @@ loadMoreBtn.addEventListener('click', async () => {
     return;
   }
 
-  // Перевіряємо чи не дійшли до кінця
   const totalPages = Math.ceil(totalHits / PER_PAGE);
   if (currentPage >= totalPages) {
     hideLoadMoreBtn();
@@ -167,10 +216,7 @@ loadMoreBtn.addEventListener('click', async () => {
     return;
   }
 
-  // Збільшуємо сторінку
   currentPage += 1;
-
-  // Завантажуємо наступну сторінку (додаємо до існуючої галереї)
   await searchImages(currentQuery, currentPage, true);
 });
 
@@ -182,10 +228,12 @@ async function initApp() {
     console.log('📸 Image Gallery додаток успішно ініціалізовано');
     console.log(`📊 На сторінці відображається ${PER_PAGE} зображень`);
 
-    // Приховуємо кнопку та індикатор завантаження при старті
     hideLoadMoreBtn();
     await hideLoader();
     hideEndMessage();
+
+    // Показуємо вітальне повідомлення
+    showInfoToast('Введіть пошуковий запит для пошуку зображень');
   } catch (error) {
     console.error('Помилка ініціалізації:', error);
   }
