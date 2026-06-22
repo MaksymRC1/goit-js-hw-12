@@ -35,6 +35,11 @@ function showErrorToast(message) {
     progressBar: true,
     close: true,
     animateInside: true,
+    transitionIn: 'fadeInDown',
+    transitionOut: 'fadeOutUp',
+    backgroundColor: '#ff6b6b',
+    titleColor: '#ffffff',
+    messageColor: '#ffffff',
   });
 }
 
@@ -50,6 +55,8 @@ function showInfoToast(message) {
     progressBar: true,
     close: true,
     animateInside: true,
+    transitionIn: 'fadeInDown',
+    transitionOut: 'fadeOutUp',
   });
 }
 
@@ -65,6 +72,8 @@ function showSuccessToast(message) {
     progressBar: true,
     close: true,
     animateInside: true,
+    transitionIn: 'fadeInDown',
+    transitionOut: 'fadeOutUp',
   });
 }
 
@@ -80,6 +89,8 @@ function showWarningToast(message) {
     progressBar: true,
     close: true,
     animateInside: true,
+    transitionIn: 'fadeInDown',
+    transitionOut: 'fadeOutUp',
   });
 }
 
@@ -121,15 +132,22 @@ function checkIfMoreImagesAvailable() {
  */
 async function searchImages(query, page = 1, append = false) {
   try {
+    // Ховаємо кнопку та повідомлення під час завантаження
     hideLoadMoreBtn();
     hideEndMessage();
+
+    // Показуємо індикатор завантаження
     await showLoader();
 
     const data = await getImagesByQueryAsync(query, page, PER_PAGE);
+
+    // Зберігаємо загальну кількість знайдених зображень
     totalHits = data.totalHits;
 
+    // Перевіряємо чи є результати
     if (data.hits.length === 0) {
       if (page === 1) {
+        // Немає результатів пошуку
         showWarningToast(
           'За вашим запитом нічого не знайдено. Спробуйте інші ключові слова.'
         );
@@ -138,42 +156,54 @@ async function searchImages(query, page = 1, append = false) {
         hideEndMessage();
         return;
       } else {
+        // Кінець колекції
         hideLoadMoreBtn();
         showEndMessage();
         return;
       }
     }
 
+    // Створюємо галерею (додаємо або перезаписуємо)
     await createGallery(data.hits, append);
+
+    // Перевіряємо чи є ще зображення для завантаження
     checkIfMoreImagesAvailable();
 
+    // Плавна прокрутка при додаванні нових зображень
     if (append && page > 1) {
       smoothScrollToNewImages();
       showSuccessToast(`Завантажено ще ${data.hits.length} зображень`);
     }
 
+    // Якщо це перша сторінка і зображень менше ніж PER_PAGE
     if (page === 1 && data.hits.length < PER_PAGE) {
       hideLoadMoreBtn();
       showEndMessage();
     }
 
-    if (page === 1) {
+    // Показуємо інформацію про кількість знайдених зображень (тільки для першої сторінки)
+    if (page === 1 && data.hits.length > 0) {
       showInfoToast(`Знайдено ${totalHits} зображень за запитом "${query}"`);
     }
   } catch (error) {
     console.error('Помилка пошуку:', error);
 
     if (page === 1) {
+      // Перша сторінка - очищаємо галерею та показуємо помилку
       await clearGallery();
       hideLoadMoreBtn();
       hideEndMessage();
       showErrorToast(`Помилка: ${error.message}`);
     } else {
+      // Помилка при завантаженні додаткових зображень
       showErrorToast(`Помилка завантаження: ${error.message}`);
+      // Повертаємо сторінку назад
       currentPage = page - 1;
+      // Показуємо кнопку знову якщо є ще зображення
       checkIfMoreImagesAvailable();
     }
   } finally {
+    // Ховаємо індикатор завантаження
     await hideLoader();
   }
 }
@@ -186,18 +216,22 @@ searchForm.addEventListener('submit', async event => {
 
   const query = searchInput.value.trim();
 
+  // Перевірка на порожнє поле
   if (!query) {
     showWarningToast('Будь ласка, введіть пошуковий запит');
     return;
   }
 
+  // Зберігаємо пошуковий запит у глобальну змінну
   currentQuery = query;
   currentPage = 1;
 
+  // Очищаємо попередні результати
   await clearGallery();
   hideLoadMoreBtn();
   hideEndMessage();
 
+  // Виконуємо пошук
   await searchImages(currentQuery, currentPage, false);
 });
 
@@ -206,9 +240,11 @@ searchForm.addEventListener('submit', async event => {
  */
 loadMoreBtn.addEventListener('click', async () => {
   if (!currentQuery) {
+    showWarningToast('Спочатку виконайте пошук');
     return;
   }
 
+  // Перевіряємо чи не дійшли до кінця
   const totalPages = Math.ceil(totalHits / PER_PAGE);
   if (currentPage >= totalPages) {
     hideLoadMoreBtn();
@@ -216,7 +252,10 @@ loadMoreBtn.addEventListener('click', async () => {
     return;
   }
 
+  // Збільшуємо сторінку
   currentPage += 1;
+
+  // Завантажуємо наступну сторінку (додаємо до існуючої галереї)
   await searchImages(currentQuery, currentPage, true);
 });
 
@@ -228,12 +267,15 @@ async function initApp() {
     console.log('📸 Image Gallery додаток успішно ініціалізовано');
     console.log(`📊 На сторінці відображається ${PER_PAGE} зображень`);
 
+    // Приховуємо кнопку та індикатор завантаження при старті
     hideLoadMoreBtn();
     await hideLoader();
     hideEndMessage();
 
     // Показуємо вітальне повідомлення
-    showInfoToast('Введіть пошуковий запит для пошуку зображень');
+    setTimeout(() => {
+      showInfoToast('Введіть пошуковий запит для пошуку зображень');
+    }, 500);
   } catch (error) {
     console.error('Помилка ініціалізації:', error);
   }

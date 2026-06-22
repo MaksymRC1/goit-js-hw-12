@@ -38,9 +38,13 @@ export async function getImagesByQueryAsync(query, page = 1, perPage = 15) {
     if (typeof perPage !== 'number' || perPage < 1) {
       validatedPerPage = MIN_PER_PAGE;
     } else if (perPage < MIN_PER_PAGE) {
+      console.warn(
+        `perPage (${perPage}) менше мінімального значення ${MIN_PER_PAGE}. Встановлено ${MIN_PER_PAGE}`
+      );
       validatedPerPage = MIN_PER_PAGE;
     }
 
+    // Формуємо параметри запиту
     const params = new URLSearchParams({
       key: API_KEY,
       q: searchQuery,
@@ -51,6 +55,7 @@ export async function getImagesByQueryAsync(query, page = 1, perPage = 15) {
       page: page,
     });
 
+    // Виконуємо запит
     const response = await axios.get(`${PIXABAY_BASE_URL}?${params}`);
 
     // Перевірка відповіді
@@ -60,15 +65,19 @@ export async function getImagesByQueryAsync(query, page = 1, perPage = 15) {
 
     return response.data;
   } catch (error) {
+    // Обробка помилок
     if (error.response) {
+      // Помилка від сервера
       throw new Error(
         `API Error: ${error.response.status} - ${error.response.statusText}`
       );
     } else if (error.request) {
+      // Немає відповіді від сервера
       throw new Error(
         'No response received from Pixabay API. Please check your internet connection.'
       );
     } else {
+      // Інші помилки
       throw new Error(`Request error: ${error.message}`);
     }
   }
