@@ -12,11 +12,12 @@
         <h1>📸 Image Gallery</h1>
         <p>Search millions of stunning images from Pixabay</p>
 
-        <form class="form">
+        <form class="form" id="search-form">
           <label>
             <input
               type="text"
               name="search-text"
+              id="search-input"
               placeholder="Search images..."
               required
             />
@@ -26,14 +27,28 @@
       </header>
 
       <main>
-        <!-- css-loader індикатор завантаження -->
-        <div
-          class="loader loader-default"
-          data-text="Loading images..."
-          blink
-        ></div>
+        <ul class="gallery" id="gallery"></ul>
 
-        <ul class="gallery"></ul>
+        <!-- Кнопка Load more -->
+        <div class="load-more-wrapper">
+          <button
+            type="button"
+            class="load-more"
+            id="load-more-btn"
+            style="display: none"
+          >
+            Load more
+          </button>
+
+          <!-- Індикатор завантаження під кнопкою -->
+          <div
+            class="loader loader-default"
+            id="loader"
+            style="display: none"
+            data-text="Loading images..."
+            blink
+          ></div>
+        </div>
       </main>
     </div>
 
